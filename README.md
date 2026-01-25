@@ -45,7 +45,7 @@ Here is a list of available parameters in the `configuration` of the plugin
 | `description`          | The description of the plugin                 | `${project.description}`             |
 | `website`              | The website of the plugin                     | `${project.url}`                     |
 | `main`                 | The main class of the plugin (**Required**)   |                                      |
-| `authors`              | The authors of the plugin                     | Maven Developers and Contributors    |
+| `authors`              | The authors of the plugin                     | `developers` and `contributors` from the `pom.xml`    |
 | `serverVersion`        | The supported server version                  | `*`                                  |
 | `dependencies`         | The dependencies of the plugin                |                                      |
 | `optionalDependencies` | The optional dependencies of the plugin       |                                      |
