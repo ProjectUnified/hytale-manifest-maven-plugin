@@ -1,6 +1,6 @@
 # Hytale Manifest Maven Plugin
 
-A Maven plugin to generate `manifest.json` for Maven projects
+A Maven plugin to generate manifest file (manifest.json) for Hytale plugins
 
 ## Usage
 

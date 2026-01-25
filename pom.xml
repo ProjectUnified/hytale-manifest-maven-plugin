@@ -10,7 +10,7 @@
     <packaging>maven-plugin</packaging>
 
     <name>hytale-manifest-maven-plugin</name>
-    <description>A maven plugin to generate manifest file for Hytale plugins</description>
+    <description>A Maven plugin to generate manifest file (manifest.json) for Hytale plugins</description>
     <url>https://github.com/ProjectUnified/${project.name}</url>
 
     <licenses>
