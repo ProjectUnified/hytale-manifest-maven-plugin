@@ -1,4 +1,4 @@
-# Hytale Manifest Maven Plugin
+# Hytale Manifest Maven Plugin ![Maven Central Version](https://img.shields.io/maven-central/v/io.github.projectunified/hytale-manifest-maven-plugin)
 
 A Maven plugin to generate manifest file (manifest.json) for Hytale plugins
 
@@ -29,6 +29,9 @@ Add the plugin to your `build` settings
 ```
 
 By default, it will be integrated in the `generate-resources` phase.
+
+> [!NOTE]
+> If you want to quickly create your project, you can fork [this template](https://github.com/HSGamer/hytale-plugin-template)
 
 ## Parameters
 
