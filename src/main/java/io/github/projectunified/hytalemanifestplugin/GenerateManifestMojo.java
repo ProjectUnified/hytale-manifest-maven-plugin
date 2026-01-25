@@ -17,69 +17,117 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-@SuppressWarnings({"FieldMayBeFinal", "FieldCanBeLocal", "unused"})
+@SuppressWarnings({ "FieldMayBeFinal", "FieldCanBeLocal", "unused" })
 @Mojo(name = "generateManifest", defaultPhase = LifecyclePhase.GENERATE_RESOURCES)
 public class GenerateManifestMojo extends AbstractMojo {
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
     private MavenProject project;
 
-    @Parameter(defaultValue = "${project.groupId}")
+    /**
+     * The group ID of the plugin.
+     */
+    @Parameter(readonly = true, defaultValue = "${project.groupId}", property = "hytale.manifest.group")
     private String group;
 
-    @Parameter(defaultValue = "${project.name}")
+    /**
+     * The name of the plugin.
+     */
+    @Parameter(readonly = true, defaultValue = "${project.name}", property = "hytale.manifest.name")
     private String name;
 
-    @Parameter(defaultValue = "${project.version}")
+    /**
+     * The version of the plugin.
+     */
+    @Parameter(readonly = true, defaultValue = "${project.version}", property = "hytale.manifest.version")
     private String version;
 
-    @Parameter(defaultValue = "${project.description}")
+    /**
+     * The description of the plugin.
+     */
+    @Parameter(defaultValue = "${project.description}", property = "hytale.manifest.description")
     private String description;
 
-    @Parameter(defaultValue = "${project.url}")
+    /**
+     * The website of the plugin.
+     */
+    @Parameter(defaultValue = "${project.url}", property = "hytale.manifest.website")
     private String website;
 
-    @Parameter(required = true)
+    /**
+     * The main class of the plugin.
+     */
+    @Parameter(required = true, property = "hytale.manifest.main")
     private String main;
 
+    /**
+     * The authors of the plugin.
+     * If not specified, it will use the developers and contributors from the
+     * project.
+     */
     @Parameter
-    private List<Author> authors;
+    private Author[] authors;
 
-    @Parameter
+    /**
+     * The supported server version of the plugin.
+     */
+    @Parameter(property = "hytale.manifest.serverVersion")
     private String serverVersion = "*";
 
+    /**
+     * The dependencies of the plugin.
+     */
     @Parameter
-    private Map<String, String> dependencies = Collections.emptyMap();
+    private Dependency[] dependencies;
 
+    /**
+     * The optional dependencies of the plugin.
+     */
     @Parameter
-    private Map<String, String> optionalDependencies = Collections.emptyMap();
+    private Dependency[] optionalDependencies;
 
+    /**
+     * The list of plugins to load before the plugin.
+     */
     @Parameter
+    private Dependency[] loadBefore;
+
+    /**
+     * Whether the plugin is disabled by default.
+     */
+    @Parameter(property = "hytale.manifest.disabledByDefault")
     private boolean disabledByDefault = false;
 
-    @Parameter
+    /**
+     * Whether the plugin includes an asset pack.
+     */
+    @Parameter(property = "hytale.manifest.includesAssetPack")
     private boolean includesAssetPack = false;
 
-    @Parameter(defaultValue = "${project.build.directory}/classes")
+    /**
+     * The output directory for the generated manifest file.
+     */
+    @Parameter(defaultValue = "${project.build.directory}/classes", property = "hytale.manifest.outputDirectory")
     private File outputDirectory;
 
     @Override
     public void execute() throws MojoExecutionException {
-        if (authors == null || authors.isEmpty()) {
-            authors = new ArrayList<>();
+        if (authors == null || authors.length == 0) {
+            List<Author> authorList = new ArrayList<>();
             if (project.getDevelopers() != null) {
                 for (Developer developer : project.getDevelopers()) {
-                    authors.add(new Author(developer.getName(), developer.getEmail(), developer.getUrl()));
+                    authorList.add(new Author(developer.getName(), developer.getEmail(), developer.getUrl()));
                 }
             }
             if (project.getContributors() != null) {
                 for (Contributor contributor : project.getContributors()) {
-                    authors.add(new Author(contributor.getName(), contributor.getEmail(), contributor.getUrl()));
+                    authorList.add(new Author(contributor.getName(), contributor.getEmail(), contributor.getUrl()));
                 }
             }
+            authors = authorList.toArray(new Author[0]);
         }
 
         Manifest manifest = new Manifest(
@@ -90,8 +138,9 @@ public class GenerateManifestMojo extends AbstractMojo {
                 authors,
                 website,
                 serverVersion,
-                dependencies,
-                optionalDependencies,
+                processDependencies(dependencies),
+                processDependencies(optionalDependencies),
+                processDependencies(loadBefore),
                 disabledByDefault,
                 includesAssetPack,
                 main);
@@ -113,15 +162,57 @@ public class GenerateManifestMojo extends AbstractMojo {
         }
     }
 
+    private Map<String, String> processDependencies(Dependency[] dependencies) {
+        if (dependencies == null || dependencies.length == 0) {
+            return null;
+        }
+        Map<String, String> map = new LinkedHashMap<>();
+        for (Dependency dependency : dependencies) {
+            map.put(dependency.getName(), dependency.getVersion());
+        }
+        return map;
+    }
+
+    public static class Dependency {
+        /**
+         * The name of the dependency.
+         */
+        @Parameter(required = true)
+        private String name;
+
+        /**
+         * The version of the dependency.
+         */
+        @Parameter(required = true)
+        private String version;
+
+        public String getName() {
+            return name;
+        }
+
+        public String getVersion() {
+            return version;
+        }
+    }
+
     public static class Author {
+        /**
+         * The name of the author.
+         */
         @Parameter
         @SerializedName("Name")
         private String name;
 
+        /**
+         * The email of the author.
+         */
         @Parameter
         @SerializedName("Email")
         private String email;
 
+        /**
+         * The website of the author.
+         */
         @Parameter
         @SerializedName("Url")
         private String url;
@@ -146,7 +237,7 @@ public class GenerateManifestMojo extends AbstractMojo {
         @SerializedName("Description")
         private final String description;
         @SerializedName("Authors")
-        private final List<Author> authors;
+        private final Author[] authors;
         @SerializedName("Website")
         private final String website;
         @SerializedName("ServerVersion")
@@ -155,29 +246,40 @@ public class GenerateManifestMojo extends AbstractMojo {
         private final Map<String, String> dependencies;
         @SerializedName("OptionalDependencies")
         private final Map<String, String> optionalDependencies;
+        @SerializedName("LoadBefore")
+        private final Map<String, String> loadBefore;
         @SerializedName("DisabledByDefault")
-        private final boolean disabledByDefault;
+        private final Boolean disabledByDefault;
         @SerializedName("IncludesAssetPack")
-        private final boolean includesAssetPack;
+        private final Boolean includesAssetPack;
         @SerializedName("Main")
         private final String main;
 
-        public Manifest(String group, String name, String version, String description, List<Author> authors,
+        public Manifest(String group, String name, String version, String description, Author[] authors,
                 String website, String serverVersion, Map<String, String> dependencies,
-                Map<String, String> optionalDependencies, boolean disabledByDefault, boolean includesAssetPack,
+                Map<String, String> optionalDependencies, Map<String, String> loadBefore,
+                Boolean disabledByDefault, Boolean includesAssetPack,
                 String main) {
-            this.group = group;
-            this.name = name;
-            this.version = version;
-            this.description = description;
-            this.authors = authors;
-            this.website = website;
-            this.serverVersion = serverVersion;
+            this.group = emptyToNull(group);
+            this.name = emptyToNull(name);
+            this.version = emptyToNull(version);
+            this.description = emptyToNull(description);
+            this.authors = authors != null && authors.length == 0 ? null : authors;
+            this.website = emptyToNull(website);
+            this.serverVersion = emptyToNull(serverVersion);
             this.dependencies = dependencies;
             this.optionalDependencies = optionalDependencies;
+            this.loadBefore = loadBefore;
             this.disabledByDefault = disabledByDefault;
             this.includesAssetPack = includesAssetPack;
-            this.main = main;
+            this.main = emptyToNull(main);
+        }
+
+        private String emptyToNull(String s) {
+            if (s == null || s.isEmpty()) {
+                return null;
+            }
+            return s;
         }
     }
 }
