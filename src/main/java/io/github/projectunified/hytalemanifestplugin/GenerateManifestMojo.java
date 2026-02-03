@@ -30,7 +30,7 @@ public class GenerateManifestMojo extends AbstractMojo {
     /**
      * The group ID of the plugin.
      */
-    @Parameter(readonly = true, defaultValue = "${project.groupId}", property = "hytale.manifest.group")
+    @Parameter(required = true, defaultValue = "${project.groupId}", property = "hytale.manifest.group")
     private String group;
 
     /**
@@ -42,7 +42,7 @@ public class GenerateManifestMojo extends AbstractMojo {
     /**
      * The version of the plugin.
      */
-    @Parameter(readonly = true, defaultValue = "${project.version}", property = "hytale.manifest.version")
+    @Parameter(required = true, defaultValue = "${project.version}", property = "hytale.manifest.version")
     private String version;
 
     /**
