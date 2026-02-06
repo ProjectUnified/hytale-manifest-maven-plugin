@@ -146,7 +146,7 @@ public class GenerateManifestMojo extends AbstractMojo {
                 includesAssetPack,
                 main);
 
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        Gson gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
         File manifestFile = new File(outputDirectory, "manifest.json");
 
         if (!outputDirectory.exists()) {
