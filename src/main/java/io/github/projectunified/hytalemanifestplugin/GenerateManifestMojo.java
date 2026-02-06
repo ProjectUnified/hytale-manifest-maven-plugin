@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -154,7 +155,7 @@ public class GenerateManifestMojo extends AbstractMojo {
             }
         }
 
-        try (Writer writer = new FileWriter(manifestFile)) {
+        try (Writer writer = new FileWriter(manifestFile, StandardCharsets.UTF_8)) {
             gson.toJson(manifest, writer);
             getLog().info("Generated manifest file at " + manifestFile.getAbsolutePath());
         } catch (IOException e) {
