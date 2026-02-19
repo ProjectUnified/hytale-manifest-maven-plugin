@@ -1,10 +1,14 @@
 # Hytale Manifest Maven Plugin ![Maven Central Version](https://img.shields.io/maven-central/v/io.github.projectunified/hytale-manifest-maven-plugin)
 
-A Maven plugin to generate manifest file (manifest.json) for Hytale plugins
+A Maven plugin for Hytale server plugin development. It provides two goals:
 
-## Usage
+- **`generateManifest`** — generates a `manifest.json` for your plugin
+- **`updateServerDependency`** — updates the `com.hypixel.hytale:Server`
+  dependency version in your POM
 
-Add the plugin to your `build` settings
+## Setup
+
+Add the plugin to your `build` settings:
 
 ```xml
 <build>
@@ -28,42 +32,42 @@ Add the plugin to your `build` settings
 </build>
 ```
 
-By default, it will be integrated in the `generate-resources` phase.
+By default, `generateManifest` runs in the `generate-resources` phase.
 
 > [!NOTE]
-> If you want to quickly create your project, you can fork [this template](https://github.com/HSGamer/hytale-plugin-template)
+> If you want to quickly create your project, you can fork
+> [this template](https://github.com/HSGamer/hytale-plugin-template)
 
-## Parameters
+---
 
-Here is a list of available parameters in the `configuration` of the plugin
+## Goal: `generateManifest`
 
-| Name                   | Description                                   | Default Value                        |
-|------------------------|-----------------------------------------------|--------------------------------------|
-| `group`                | The group ID of the plugin                    | `${project.groupId}`                 |
-| `name`                 | The name of the plugin                        | `${project.name}`                    |
-| `version`              | The version of the plugin                     | `${project.version}`                 |
-| `description`          | The description of the plugin                 | `${project.description}`             |
-| `website`              | The website of the plugin                     | `${project.url}`                     |
-| `main`                 | The main class of the plugin (**Required**)   |                                      |
-| `authors`              | The authors of the plugin                     | `developers` and `contributors` from the `pom.xml`    |
-| `serverVersion`        | The supported server version                  | `*`                                  |
-| `dependencies`         | The dependencies of the plugin                |                                      |
-| `optionalDependencies` | The optional dependencies of the plugin       |                                      |
-| `loadBefore`           | The list of plugins to load before the plugin |                                      |
-| `disabledByDefault`    | Whether the plugin is disabled by default     | `false`                              |
-| `includesAssetPack`    | Whether the plugin includes an asset pack     | `false`                              |
-| `outputDirectory`      | The output directory for the manifest file    | `${project.build.directory}/classes` |
+Generates a `manifest.json` file and places it in the build output directory so
+it is included in the final JAR.
+
+### Parameters
+
+| Name                   | Property                            | Description                                                                     | Default                               |
+| ---------------------- | ----------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------- |
+| `group`                | `hytale.manifest.group`             | The group ID of the plugin                                                      | `${project.groupId}`                  |
+| `name`                 | `hytale.manifest.name`              | The display name of the plugin                                                  | `${project.name}`                     |
+| `version`              | `hytale.manifest.version`           | The version of the plugin                                                       | `${project.version}`                  |
+| `description`          | `hytale.manifest.description`       | A short description of the plugin                                               | `${project.description}`              |
+| `website`              | `hytale.manifest.website`           | The plugin's website URL                                                        | `${project.url}`                      |
+| `main`                 | `hytale.manifest.main`              | Fully-qualified entry-point class (**required**)                                |                                       |
+| `authors`              |                                     | List of authors (see [Authors](#authors))                                       | Project `developers` + `contributors` |
+| `serverVersion`        | `hytale.manifest.serverVersion`     | Server version compatibility (see [Server Version](#server-version-resolution)) | `*`                                   |
+| `dependencies`         |                                     | Required plugin dependencies (see [Dependencies](#dependencies))                |                                       |
+| `optionalDependencies` |                                     | Optional plugin dependencies                                                    |                                       |
+| `loadBefore`           |                                     | Plugins to load before this one                                                 |                                       |
+| `disabledByDefault`    | `hytale.manifest.disabledByDefault` | Whether the plugin is disabled by default                                       | `false`                               |
+| `includesAssetPack`    | `hytale.manifest.includesAssetPack` | Whether the plugin includes an asset pack                                       | `false`                               |
+| `outputDirectory`      | `hytale.manifest.outputDirectory`   | Output directory for the manifest file                                          | `${project.build.directory}/classes`  |
 
 ### Authors
 
-The `authors` parameter is a list of objects with the following properties:
-
-- `name`: The name of the author
-- `email`: The email of the author
-- `url`: The website of the author
-
-If `authors` is not specified, it will use the `developers` and `contributors` from
-the project (`pom.xml`).
+If no `authors` are explicitly configured, the Mojo falls back to the project's
+`<developers>` and `<contributors>`.
 
 ```xml
 <authors>
@@ -77,11 +81,11 @@ the project (`pom.xml`).
 
 ### Dependencies
 
-The `dependencies`, `optionalDependencies` and `loadBefore` parameters are lists
-of objects with the following properties:
+The `dependencies`, `optionalDependencies`, and `loadBefore` parameters each
+accept a list of entries with:
 
-- `name`: The name of the dependency (**Required**)
-- `version`: The version of the dependency (**Required**)
+- `name` — the dependency plugin name (**required**)
+- `version` — the required version (**required**, use `*` for any)
 
 ```xml
 <dependencies>
@@ -90,4 +94,57 @@ of objects with the following properties:
         <version>1.0.0</version>
     </dependency>
 </dependencies>
+```
+
+### Server Version Resolution
+
+If `serverVersion` is set to `LATEST` or `RELEASE` (case-insensitive), the
+actual version is resolved at build time from the
+[Hytale Maven repository metadata](https://maven.hytale.com/release/com/hypixel/hytale/Server/maven-metadata.xml).
+
+```xml
+<configuration>
+    <main>com.example.MyPlugin</main>
+    <serverVersion>RELEASE</serverVersion>
+</configuration>
+```
+
+---
+
+## Goal: `updateServerDependency`
+
+Updates the `com.hypixel.hytale:Server` dependency version in a POM file. This
+goal is **not bound** to any lifecycle phase — invoke it manually:
+
+```bash
+mvn hytale-manifest:updateServerDependency
+```
+
+### Parameters
+
+| Name                | Property                     | Description                                                                | Default                      |
+| ------------------- | ---------------------------- | -------------------------------------------------------------------------- | ---------------------------- |
+| `serverVersionType` | `hytale.server.versionType`  | Which version to fetch: `LATEST` or `RELEASE`                              | `RELEASE`                    |
+| `pom`               | `hytale.server.pom`          | Path to the POM file to update                                             | `${project.basedir}/pom.xml` |
+| `propertyName`      | `hytale.server.propertyName` | If set, update this `<properties>` entry instead of the dependency version |                              |
+
+### Examples
+
+Update the dependency version directly:
+
+```bash
+mvn hytale-manifest:updateServerDependency
+```
+
+Update a Maven property instead (e.g. when the dependency uses
+`${hytale.server.version}`):
+
+```bash
+mvn hytale-manifest:updateServerDependency -Dhytale.server.propertyName=hytale.server.version
+```
+
+Fetch the latest version instead of the latest release:
+
+```bash
+mvn hytale-manifest:updateServerDependency -Dhytale.server.versionType=LATEST
 ```
