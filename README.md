@@ -57,6 +57,7 @@ it is included in the final JAR.
 | `main`                 | `hytale.manifest.main`              | Fully-qualified entry-point class (**required**)                                |                                       |
 | `authors`              |                                     | List of authors (see [Authors](#authors))                                       | Project `developers` + `contributors` |
 | `serverVersion`        | `hytale.manifest.serverVersion`     | Server version compatibility (see [Server Version](#server-version-resolution)) | `*`                                   |
+| `patchline`            | `hytale.manifest.patchline`         | Patchline: `RELEASE` or `PRERELEASE` (see [Patchline](#patchline))              | `RELEASE`                             |
 | `dependencies`         |                                     | Required plugin dependencies (see [Dependencies](#dependencies))                |                                       |
 | `optionalDependencies` |                                     | Optional plugin dependencies                                                    |                                       |
 | `loadBefore`           |                                     | Plugins to load before this one                                                 |                                       |
@@ -99,13 +100,30 @@ accept a list of entries with:
 ### Server Version Resolution
 
 If `serverVersion` is set to `LATEST` or `RELEASE` (case-insensitive), the
-actual version is resolved at build time from the
-[Hytale Maven repository metadata](https://maven.hytale.com/release/com/hypixel/hytale/Server/maven-metadata.xml).
+actual version is resolved at build time from the Hytale Maven repository
+metadata.
 
 ```xml
 <configuration>
     <main>com.example.MyPlugin</main>
     <serverVersion>RELEASE</serverVersion>
+</configuration>
+```
+
+### Patchline
+
+The `patchline` parameter controls which Maven repository is queried:
+
+| Value        | Repository URL                                                                      |
+| ------------ | ----------------------------------------------------------------------------------- |
+| `RELEASE`    | `https://maven.hytale.com/release/com/hypixel/hytale/Server/maven-metadata.xml`     |
+| `PRERELEASE` | `https://maven.hytale.com/pre-release/com/hypixel/hytale/Server/maven-metadata.xml` |
+
+```xml
+<configuration>
+    <main>com.example.MyPlugin</main>
+    <serverVersion>RELEASE</serverVersion>
+    <patchline>PRERELEASE</patchline>
 </configuration>
 ```
 
@@ -127,6 +145,7 @@ mvn hytale-manifest:updateServerDependency
 | `serverVersionType` | `hytale.server.versionType`  | Which version to fetch: `LATEST` or `RELEASE`                              | `RELEASE`                    |
 | `pom`               | `hytale.server.pom`          | Path to the POM file to update                                             | `${project.basedir}/pom.xml` |
 | `propertyName`      | `hytale.server.propertyName` | If set, update this `<properties>` entry instead of the dependency version |                              |
+| `patchline`         | `hytale.server.patchline`    | Patchline: `RELEASE` or `PRERELEASE`                                       | `RELEASE`                    |
 
 ### Examples
 
@@ -147,4 +166,10 @@ Fetch the latest version instead of the latest release:
 
 ```bash
 mvn hytale-manifest:updateServerDependency -Dhytale.server.versionType=LATEST
+```
+
+Use the pre-release patchline:
+
+```bash
+mvn hytale-manifest:updateServerDependency -Dhytale.server.patchline=PRERELEASE
 ```

@@ -147,6 +147,15 @@ public class GenerateManifestMojo extends AbstractMojo {
     @Parameter(property = "hytale.manifest.serverVersion")
     private String serverVersion = "*";
 
+    /**
+     * The patchline to use when resolving the server version.
+     * Accepted values: {@code RELEASE} or {@code PRERELEASE}
+     * (case-insensitive). Determines which Maven repository metadata
+     * URL is queried.
+     */
+    @Parameter(property = "hytale.manifest.patchline", defaultValue = "RELEASE")
+    private String patchline;
+
     // ---------------------------------------------------------------
     // Dependencies
     // ---------------------------------------------------------------
@@ -254,8 +263,9 @@ public class GenerateManifestMojo extends AbstractMojo {
             return;
         }
         try {
-            String resolved = HytaleMetadataUtil.fetchVersion(serverVersion);
-            getLog().info("Resolved serverVersion '" + serverVersion + "' to '" + resolved + "'");
+            String resolved = HytaleMetadataUtil.fetchVersion(serverVersion, patchline);
+            getLog().info("Resolved serverVersion '" + serverVersion + "' to '" + resolved
+                    + "' (patchline: " + patchline + ")");
             serverVersion = resolved;
         } catch (IOException e) {
             throw new MojoExecutionException("Failed to resolve server version '" + serverVersion + "'", e);

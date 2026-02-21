@@ -58,6 +58,15 @@ public class UpdateServerDependencyMojo extends AbstractMojo {
     @Parameter(property = "hytale.server.propertyName")
     private String propertyName;
 
+    /**
+     * The patchline to use when fetching the server version.
+     * Accepted values: {@code RELEASE} or {@code PRERELEASE}
+     * (case-insensitive). Determines which Maven repository metadata
+     * URL is queried.
+     */
+    @Parameter(property = "hytale.server.patchline", defaultValue = "RELEASE")
+    private String patchline;
+
     private static final String TARGET_GROUP_ID = "com.hypixel.hytale";
     private static final String TARGET_ARTIFACT_ID = "Server";
 
@@ -66,7 +75,7 @@ public class UpdateServerDependencyMojo extends AbstractMojo {
         // 1. Fetch the resolved version
         String resolvedVersion;
         try {
-            resolvedVersion = HytaleMetadataUtil.fetchVersion(serverVersionType);
+            resolvedVersion = HytaleMetadataUtil.fetchVersion(serverVersionType, patchline);
         } catch (IOException e) {
             throw new MojoExecutionException("Failed to fetch server version", e);
         }
